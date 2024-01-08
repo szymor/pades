@@ -1,0 +1,17 @@
+.PHONY: all clean
+
+PROJECT = pades-miyoo
+
+CC = arm-linux-gcc
+SYSROOT = $(shell $(CC) --print-sysroot)
+CFLAGS = -std=c99 -g -I$(SYSROOT)/usr/include/SDL
+LDFLAGS = $(shell $(SYSROOT)/../../bin/pkg-config --libs sdl SDL_gfx)
+
+
+all: $(PROJECT)
+
+$(PROJECT): main.c
+	$(CC) $(CFLAGS) -o $(PROJECT) $< $(LDFLAGS)
+
+clean:
+	rm -rf $(PROJECT)

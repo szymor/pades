@@ -1,0 +1,18 @@
+.PHONY: all clean
+
+PROJECT = pades-retrofw
+
+CC = mipsel-linux-gcc
+SYSROOT = $(shell $(CC) --print-sysroot)
+CFLAGS = -std=c99 -g -I$(SYSROOT)/usr/include/SDL
+LDFLAGS = $(shell $(SYSROOT)/../../bin/pkg-config --libs sdl SDL_gfx)
+
+
+all: $(PROJECT) icon.png pades.retrofw.desktop README.md
+	mksquashfs $^ pades.opk -noappend -no-xattrs
+
+$(PROJECT): main.c
+	$(CC) $(CFLAGS) -o $(PROJECT) $< $(LDFLAGS)
+
+clean:
+	rm -rf $(PROJECT)
