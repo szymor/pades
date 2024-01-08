@@ -12,10 +12,13 @@ SDL_Surface *pattern = NULL;
 int pattern_size = 4;
 int px = 0, py = 0;
 
+void redraw(void);
+
 int main(int argc, char *argv[])
 {
     SDL_Init(SDL_INIT_VIDEO);
     SDL_WM_SetCaption("Pattern Designer", NULL);
+    SDL_ShowCursor(SDL_DISABLE);
     screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT,
         SCREEN_BPP, SDL_HWSURFACE | SDL_DOUBLEBUF);
 
@@ -24,6 +27,8 @@ int main(int argc, char *argv[])
         screen->format->Rmask, screen->format->Gmask,
         screen->format->Bmask, screen->format->Amask);
     SDL_FillRect(pattern, NULL, SDL_MapRGB(pattern->format, 0xaa, 0xaa, 0xaa));
+
+    redraw();
 
     SDL_Event event;
     while (SDL_WaitEvent(&event))
@@ -108,46 +113,51 @@ int main(int argc, char *argv[])
         }
 
         // redraw after any event
-        // background
-        SDL_Rect src, dst;
-        src.x = src.y = 0;
-        src.w = src.h = pattern_size;
-        for (dst.y = 0; dst.y < SCREEN_HEIGHT; dst.y += pattern_size)
-            for (dst.x = 0; dst.x < SCREEN_WIDTH; dst.x += pattern_size)
-            {
-                SDL_BlitSurface(pattern, &src, screen, &dst);
-            }
-
-        // pattern
-        SDL_LockSurface(pattern);
-        dst.w = dst.h = 16;
-        dst.y = SCREEN_HEIGHT - dst.h * pattern_size;
-        for (int i = 0; i < pattern_size; ++i, dst.y += dst.h)
-        {
-            dst.x = SCREEN_WIDTH - dst.w * pattern_size;
-            for (int j = 0; j < pattern_size; ++j, dst.x += dst.w)
-            {
-                Uint8 *p = (Uint8 *)pattern->pixels + i * pattern->pitch +
-                    j * pattern->format->BytesPerPixel;
-                SDL_FillRect(screen, &dst,
-                    SDL_MapRGB(pattern->format, p[0], p[0], p[0]));
-            }
-        }
-        SDL_UnlockSurface(pattern);
-
-        dst.y = SCREEN_HEIGHT - dst.h * pattern_size;
-        dst.x = SCREEN_WIDTH - dst.w * pattern_size;
-        hlineRGBA(screen, dst.x, SCREEN_WIDTH, dst.y, 255, 0, 0, 255);
-        vlineRGBA(screen, dst.x, dst.y, SCREEN_HEIGHT, 255, 0, 0, 255);
-        dst.y += py * dst.h;
-        dst.x += px * dst.w;
-        rectangleRGBA(screen, dst.x, dst.y, dst.x + dst.w, dst.y + dst.h,
-            255, 0, 0, 255);
-
-        // refresh
-        SDL_Flip(screen);
+        redraw();
     }
 
     SDL_Quit();
     return 0;
+}
+
+void redraw(void)
+{
+    // background
+    SDL_Rect src, dst;
+    src.x = src.y = 0;
+    src.w = src.h = pattern_size;
+    for (dst.y = 0; dst.y < SCREEN_HEIGHT; dst.y += pattern_size)
+        for (dst.x = 0; dst.x < SCREEN_WIDTH; dst.x += pattern_size)
+        {
+            SDL_BlitSurface(pattern, &src, screen, &dst);
+        }
+
+    // pattern
+    SDL_LockSurface(pattern);
+    dst.w = dst.h = 16;
+    dst.y = SCREEN_HEIGHT - dst.h * pattern_size;
+    for (int i = 0; i < pattern_size; ++i, dst.y += dst.h)
+    {
+        dst.x = SCREEN_WIDTH - dst.w * pattern_size;
+        for (int j = 0; j < pattern_size; ++j, dst.x += dst.w)
+        {
+            Uint8 *p = (Uint8 *)pattern->pixels + i * pattern->pitch +
+                j * pattern->format->BytesPerPixel;
+            SDL_FillRect(screen, &dst,
+                SDL_MapRGB(pattern->format, p[0], p[0], p[0]));
+        }
+    }
+    SDL_UnlockSurface(pattern);
+
+    dst.y = SCREEN_HEIGHT - dst.h * pattern_size;
+    dst.x = SCREEN_WIDTH - dst.w * pattern_size;
+    hlineRGBA(screen, dst.x, SCREEN_WIDTH, dst.y, 255, 0, 0, 255);
+    vlineRGBA(screen, dst.x, dst.y, SCREEN_HEIGHT, 255, 0, 0, 255);
+    dst.y += py * dst.h;
+    dst.x += px * dst.w;
+    rectangleRGBA(screen, dst.x, dst.y, dst.x + dst.w, dst.y + dst.h,
+        255, 0, 0, 255);
+
+    // refresh
+    SDL_Flip(screen);
 }
