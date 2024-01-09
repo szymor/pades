@@ -4,7 +4,7 @@
 #define SCREEN_WIDTH        (320)
 #define SCREEN_HEIGHT       (240)
 #define SCREEN_BPP          (32)
-#define MAX_PATTERN_SIZE    (8)
+#define MAX_PATTERN_SIZE    (12)
 #define BG_COLOR            (0xaa)
 
 SDL_Surface *screen = NULL;
@@ -26,7 +26,8 @@ int main(int argc, char *argv[])
         MAX_PATTERN_SIZE, MAX_PATTERN_SIZE, SCREEN_BPP,
         screen->format->Rmask, screen->format->Gmask,
         screen->format->Bmask, screen->format->Amask);
-    SDL_FillRect(pattern, NULL, SDL_MapRGB(pattern->format, 0xaa, 0xaa, 0xaa));
+    SDL_FillRect(pattern, NULL, SDL_MapRGB(pattern->format,
+        BG_COLOR, BG_COLOR, BG_COLOR));
 
     redraw();
 
@@ -42,6 +43,11 @@ int main(int argc, char *argv[])
                         --pattern_size;
                         if (pattern_size < 2)
                             pattern_size = 2;
+                        if (px >= pattern_size || py >= pattern_size)
+                        {
+                            px = 0;
+                            py = 0;
+                        }
                         break;
                     case SDLK_BACKSPACE:
                         ++pattern_size;
@@ -101,6 +107,10 @@ int main(int argc, char *argv[])
                         ++py;
                         if (py >= pattern_size)
                             py = 0;
+                        break;
+                    case SDLK_RETURN:
+                        SDL_FillRect(pattern, NULL, SDL_MapRGB(pattern->format,
+                            BG_COLOR, BG_COLOR, BG_COLOR));
                         break;
                     case SDLK_ESCAPE:
                         exit(0);
