@@ -7,17 +7,24 @@
 #define MAX_PATTERN_SIZE    (32)
 #define MAX_PREVIEW_SIZE    (192)
 #define BG_COLOR            (0xaa)
+#define MAX_POPUP_STRLEN    (32)
 
 SDL_Surface *screen = NULL;
 SDL_Surface *pattern = NULL;
 int pattern_size = 4;
 int px = 0, py = 0;
 
+// semaphor
+int popup_enabled = 0;
+char popup_text[MAX_POPUP_STRLEN] = "none";
+
+void show_popup(void);
+Uint32 timer_cb(Uint32 interval, void *param);
 void redraw(void);
 
 int main(int argc, char *argv[])
 {
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
     SDL_WM_SetCaption("Pattern Designer", NULL);
     SDL_ShowCursor(SDL_DISABLE);
     screen = SDL_SetVideoMode(SCREEN_WIDTH, SCREEN_HEIGHT,
@@ -37,6 +44,10 @@ int main(int argc, char *argv[])
     {
         switch (event.type)
         {
+            case SDL_USEREVENT:
+                if (popup_enabled)
+                    --popup_enabled;
+                break;
             case SDL_KEYDOWN:
                 switch (event.key.keysym.sym)
                 {
@@ -49,11 +60,15 @@ int main(int argc, char *argv[])
                             px = 0;
                             py = 0;
                         }
+                        sprintf(popup_text, "%dx%d", pattern_size, pattern_size);
+                        show_popup();
                         break;
                     case SDLK_BACKSPACE:
                         ++pattern_size;
                         if (pattern_size > MAX_PATTERN_SIZE)
                             pattern_size = MAX_PATTERN_SIZE;
+                        sprintf(popup_text, "%dx%d", pattern_size, pattern_size);
+                        show_popup();
                         break;
                     case SDLK_SPACE:
                     case SDLK_LCTRL:
@@ -131,6 +146,20 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+void show_popup(void)
+{
+    ++popup_enabled;
+    SDL_AddTimer(1000, timer_cb, NULL);
+}
+
+Uint32 timer_cb(Uint32 interval, void *param)
+{
+    SDL_Event event;
+    event.type = SDL_USEREVENT;
+    SDL_PushEvent(&event);
+    return 0;
+}
+
 void redraw(void)
 {
     // background
@@ -172,6 +201,24 @@ void redraw(void)
     dst.x += px * dst.w;
     rectangleRGBA(screen, dst.x, dst.y, dst.x + dst.w, dst.y + dst.h,
         255, 0, 0, 255);
+
+    // popup
+    if (popup_enabled)
+    {
+        dst.w = strlen(popup_text) * 8 + 8;
+        dst.h = 16;
+        dst.x = (SCREEN_WIDTH - dst.w) / 2;
+        dst.y = (SCREEN_HEIGHT - dst.h) / 2;
+        boxRGBA(screen, dst.x, dst.y, dst.x + dst.w, dst.y + dst.h,
+            0x55, 0x55, 0x55, 255);
+        rectangleRGBA(screen, dst.x, dst.y, dst.x + dst.w, dst.y + dst.h,
+            0, 0, 0, 255);
+        dst.w = strlen(popup_text) * 8;
+        dst.h = 8;
+        dst.x = (SCREEN_WIDTH - dst.w) / 2;
+        dst.y = (SCREEN_HEIGHT - dst.h) / 2;
+        stringRGBA(screen, dst.x, dst.y, popup_text, 255, 255, 255, 255);
+    }
 
     // refresh
     SDL_Flip(screen);
