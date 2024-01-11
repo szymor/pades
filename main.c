@@ -4,7 +4,8 @@
 #define SCREEN_WIDTH        (320)
 #define SCREEN_HEIGHT       (240)
 #define SCREEN_BPP          (32)
-#define MAX_PATTERN_SIZE    (12)
+#define MAX_PATTERN_SIZE    (32)
+#define MAX_PREVIEW_SIZE    (192)
 #define BG_COLOR            (0xaa)
 
 SDL_Surface *screen = NULL;
@@ -142,9 +143,13 @@ void redraw(void)
             SDL_BlitSurface(pattern, &src, screen, &dst);
         }
 
+    // calculate optimal preview pixel size
+    dst.w = MAX_PREVIEW_SIZE / pattern_size;
+    if (dst.w > 16) dst.w = 16;
+    dst.h = dst.w;
+
     // pattern
     SDL_LockSurface(pattern);
-    dst.w = dst.h = 16;
     dst.y = SCREEN_HEIGHT - dst.h * pattern_size;
     for (int i = 0; i < pattern_size; ++i, dst.y += dst.h)
     {
