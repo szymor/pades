@@ -70,7 +70,6 @@ int main(int argc, char *argv[])
                         sprintf(popup_text, "%dx%d", pattern_size, pattern_size);
                         show_popup();
                         break;
-                    case SDLK_SPACE:
                     case SDLK_LCTRL:
                     case SDLK_LALT:
                     case SDLK_LSHIFT:
@@ -82,21 +81,20 @@ int main(int argc, char *argv[])
                         // needs to be 32bpp
                         switch (event.key.keysym.sym)
                         {
-                            case SDLK_SPACE:
-                                if (p[0] == BG_COLOR)
-                                    p[0] = p[1] = p[2] = 0xff;
-                                else
-                                    p[0] = p[1] = p[2] = BG_COLOR;
-                                break;
                             case SDLK_LCTRL:
-                                if (p[0] == BG_COLOR)
+                                if (p[0] != 0x00)
                                     p[0] = p[1] = p[2] = 0x00;
                                 else
                                     p[0] = p[1] = p[2] = BG_COLOR;
                                 break;
                             case SDLK_LALT:
+                                if (p[0] != 0xff)
+                                    p[0] = p[1] = p[2] = 0xff;
+                                else
+                                    p[0] = p[1] = p[2] = BG_COLOR;
+                                break;
                             case SDLK_LSHIFT:
-                                if (p[0] == BG_COLOR)
+                                if (p[0] != 0x55)
                                     p[0] = p[1] = p[2] = 0x55;
                                 else
                                     p[0] = p[1] = p[2] = BG_COLOR;
